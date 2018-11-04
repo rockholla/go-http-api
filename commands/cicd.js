@@ -195,7 +195,8 @@ class CicdCommand {
         logger.error('Timed out waiting for deploy rollout to finish')
         process.exit(1)
       }
-      logger.info(`Rolling release complete for new version ${packageJson.version}`)
+      logger.info(`Rolling release complete for new version ${packageJson.version}...pausing before release completion`)
+      common.sleep(10)
       logger.info(`HTTP API accessible at http://${this.kubernetes.getServiceEndpoint('go-http-api')}:3000. ` +
                   `It may take a few minutes before it's available if this is the first deploy`)
     })
