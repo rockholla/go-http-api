@@ -1,11 +1,13 @@
-const fs        = require('fs')
-const path      = require('path')
-const common    = require('lib/common')
-const logger    = require('@rockholla/clia').logger
-const config    = require('@rockholla/clia').config
-const childp    = require('child_process')
-const inquirer  = require('inquirer')
-const Aws       = require('lib/aws')
+const fs          = require('fs')
+const path        = require('path')
+const common      = require('lib/common')
+const logger      = require('@rockholla/clia').logger
+const config      = require('@rockholla/clia').config
+const childp      = require('child_process')
+const inquirer    = require('inquirer')
+const Aws         = require('lib/aws')
+const Kubernetes  = require('lib/kubernetes')
+const yaml        = require('node-yaml')
 
 class CicdCommand {
 
@@ -17,6 +19,7 @@ class CicdCommand {
     this.command    = `cicd <${this.actions.join('|')}>`
     this.desc       = 'A built-in CI server of sorts, for automating building, testing, SCM flow, and deployments'
     this.aws        = null
+    this.kubernetes = null
   }
 
   /**
@@ -24,7 +27,8 @@ class CicdCommand {
    * @param {Object} argv - yargs arguments
    */
   handler (argv) {
-    this.aws = new Aws(config.active.aws.profile)
+    this.aws        = new Aws(config.active.aws.profile)
+    this.kubernetes = new Kubernetes(this.aws, 'go-http-api')
     this[common.getArgvCommand(argv, this.actions)](argv).then(() => {}).catch((error) => {
       common.processError(error, argv)
     })
@@ -169,6 +173,29 @@ class CicdCommand {
       logger.info('Pushing to ECR')
       common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
       common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
+    }).then(() => {
+      logger.info('Running the rolling upgrade deployment to the EKS cluster')
+      let daemonSet = yaml.readSync(path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.template.yml'))
+      daemonSet.spec.template.metadata.labels.version = packageJson.version
+      daemonSet.spec.template.spec.containers[0].image = `${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`
+      const dest = path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.yml')
+      yaml.writeSync(dest)
+      this.kubernetes.apply(dest)
+      this.kubernetes.apply(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
+      logger.info(`Rolling upgrade initiatated. Monitoring status...`)
+      let result      = this.kubernetes.getRolloutStatus('ds/go-http-api')
+      let attempts    = 0
+      let maxAttempts = 10
+      while (attempts < maxAttempts && !result.match(/successfully rolled out/g)) {
+        result = this.kubernetes.getRolloutStatus('ds/go-http-api')
+        attempts++
+        common.sleep(10)
+      }
+      if (attempts >= maxAttempts) {
+        logger.error('Timed out waiting for deploy rollout to finish')
+        process.exit(1)
+      }
+      logger.info(`Rolling release complete for new version ${packageJson.version}`)
     })
   }
 

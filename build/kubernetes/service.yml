@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: go-http-api
+  labels:
+    app: go-http-api
+spec:
+  selector:
+    app: go-http-api
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: go-http-api
+  labels:
+    app: go-http-api
+spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  minReadySeconds: 0
+  selector:
+    matchLabels:
+      app: go-http-api
+  template:
+    metadata:
+      labels:
+        app: go-http-api
+        version: ""
+    spec:
+      containers:
+        - name: go-http-api-container
+          image: ""
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 3000
