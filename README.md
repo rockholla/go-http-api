@@ -8,7 +8,7 @@ Requirements for getting started after cloning this repo:
 
 1. [NodeJS >= 10.13](https://github.com/nodenv/nodenv)
 2. Run `npm install` from the root of this clone
-3. [Go](https://github.com/syndbg/goenv) and the following package `go get github.com/gorilla/mux`
+3. [Go](https://github.com/syndbg/goenv) and the following package `go get github.com/gorilla/mux` (for building the HTTP API)
 4. For additional requirements, see `package.json` -> `clia.requirements`
 
 All requirements are enforced when running the `clia` tool. And for more info on that tool...
@@ -31,7 +31,7 @@ For more info, see https://www.npmjs.com/package/@rockholla/clia.
 ./clia use mine
 ```
 
-Which will help you create a new config file at `/config/mine.js`. Edit that file to add your [AWS named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html) which will be used for connecting to AWS to create and manage infrastructure:
+Which will help you create a new config file at `/config/mine.js`. Edit that file to add your [AWS named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html) which will be used for connecting to AWS and creating/managing infrastructure there:
 
 ```
 module.exports = {
@@ -41,7 +41,7 @@ module.exports = {
 }
 ```
 
-Next run:
+Next, run:
 
 ```
 ./clia cicd init
@@ -61,9 +61,12 @@ What the above creates:
 
 1. A dedicated AWS VPC
 2. An EKS Cluster control plane
-3. EKS worker nodes with configurable number of min, max, and desired worker nodes via an auto-scaling group
-    * The HTTP API is deployed into the EKS cluster using a [`DaemonSet`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/), so the auto-scaling of worker nodes ensures that our deployment also scales as the nodes themselves need to scale
-4. Associated security groups and IAM roles for managing resources internally
+3. EKS worker nodes with configurable number of min, max, and desired worker nodes, and configurable EC2 instance type for nodes
+4. An auto-scaling group for worker nodes that
+    * Adds a node if CPU utilization is above 80% across nodes for 10 mins
+    * Removes a node if CPU utilization is less than 10% across nodes for 10 mins
+    * The HTTP API is deployed into the EKS cluster using a [`DaemonSet`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/), so the auto-scaling of worker nodes ensures that our pods/containers also scale as the nodes themselves scale
+4. Associated security groups and IAM roles/profiles for assigning to and managing resources internally
 
 When you're done, you can destroy everything in AWS:
 
@@ -110,8 +113,8 @@ Our "CI server" for this project is included in the project itself. Here's how i
 
 This is to provide some additional context around decisions within this project.
 
-1. There are a number of local requirements while running this. In a real/client situation, We'd likely have something like a jump box/bastion spun up on the cloud with most dependencies installed automatically for us there to run commands. A bootstrap command that would have fewer local requirements could spin up base resources in the cloud, connect to that jump box, and other commands would run from there. Keeping the infrastructure as simple as possible for this proof though.
-2. Typically a CI server like Jenkins, Bamboo, Travis, CircleCI, etc. would be used here to wire up the build and deployment pipeline, webooks via SCM, dedicated build environments, and deployment config and mechanisms from that tool. For the sake of simplicity for this demo, I've wrapped it all in the `clia` tool here: `./clia cicd help`. Essentially a CI server embedded in the project itself. Again, just keeping the number of infrastructure resources and tools to a minimum for the sake of a proof/demo.
-3. Tests in `/tests` are minimal, just to show that they are wired into the pipeline functionally for both the infrastructure code and HTTP API for functional testing
+1. There are a number of local requirements while running this. In a real/client situation, We'd likely have something like a jump box/bastion spun up on the cloud with most dependencies installed automatically for us there to run commands. A bootstrap command that would have fewer local requirements could spin up base resources in the cloud, connect to that jump box, and all other operations would run from there. The intention is to keep the infrastructure as simple as possible for this proof though.
+2. Typically a CI server/service like Jenkins, Bamboo, Travis, CircleCI, etc. would be used here to wire up the build and deployment pipeline, webooks via SCM, dedicated build environments, and deployment config and mechanisms from that tool. Again, for the sake of simplicity in infrastructure though, I've wrapped it all in the `clia` tool: `./clia cicd help`. Essentially a CI server embedded in the project itself, and you can imagine similar operations being triggered on a remote CI server.
+3. `/tests` have been built out minimally, really just to show that they are wired into the pipeline functionally for running both infrastructure code and HTTP API tests.
 3. This project was focused on AWS, but [a Go App Engine project](https://cloud.google.com/appengine/docs/standard/go/quickstart) in Google Cloud would probably be the easiest path for something like this.
 4. The auto-scaling approach of choice here (DaemonSet) is again just a choice around simplicity. There are a handful of other routes that you could go via Kubernetes to scale. Depending on the actual application, you might opt for [horizontal pod autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/), or even explore things like multiple clusters across regions or datacenters with a load balancer directing traffic to both.
