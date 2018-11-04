@@ -5,7 +5,7 @@ const shell = require('shelljs')
 
 console.log('Running tests and a build before committing...')
 try {
-  const result = shell.exec('./clia cicd build', { cwd: path.resolve(__dirname, '..', '..')})
+  const result = shell.exec('./clia cicd build', { cwd: path.resolve(__dirname, '..', '..') })
   if (result.code !== 0) {
     throw result.stderr
   }
