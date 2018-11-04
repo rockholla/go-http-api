@@ -123,6 +123,12 @@ The HTTP API in this project is serving up a list of trailheads and their locati
 6. Commit your changes (see how the git pre-commit hook will lint/test/build automatically before accepting the commit)
 7. Deploy your new code: `./clia cicd release`, go to the endpoint provided in the log output and see your new trailheads
 
+Don't forget to bring it all down when you're done:
+
+```
+./clia infrastructure destroy
+```
+
 ## Additional Notes
 
 This is to provide some additional context around decisions within this project.
