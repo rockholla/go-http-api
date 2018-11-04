@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+'use strict';
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _dotenv = require('dotenv');
+
+var _dotenv2 = _interopRequireDefault(_dotenv);
+
+var _module2 = require('module');
+
+var _module3 = _interopRequireDefault(_module2);
+
+var _clia = require('@rockholla/clia');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_dotenv2.default.config();
+if (!process.env.NODE_PATH) {
+  process.env.NODE_PATH = _path2.default.resolve(__dirname);
+}
+
+_module3.default.Module._initPaths();
+
+
+const yargs = require('yargs');
+yargs.commandDir('commands').option('debug', {
+  alias: 'd',
+  default: false,
+  describe: 'more verbose, debug output for commands'
+}).help('h').alias('help', 'h').demandCommand(1, 'you must include a command').check(argv => {
+  if (argv.debug) {
+    _clia.logger.info('Enabling debug logging');
+    _clia.logger.transports.forEach(transport => {
+      transport.level = 'debug';
+    });
+  }
+  _clia.logger.info('Making sure system requirements are met...');
+  try {
+    let packageJson = require('./package.json');
+    _clia.requirements.check(packageJson.clia.requirements, packageJson.engines);
+  } catch (error) {
+    _clia.logger.error(`Requirements check failed:\n${error}`);
+    process.exit(1);
+  }
+  if (argv._ != 'use') {
+    const activeConfigName = _clia.config.getActiveName(__dirname);
+    if (activeConfigName) {
+      _clia.logger.info(`Using the ${activeConfigName} config`);
+      argv.activeConfigName = activeConfigName;
+    } else {
+      _clia.logger.warn('Using the default configuration only');
+      argv.activeConfigName = 'default';
+    }
+  }
+  _clia.logger.debug(`Arguments: ${JSON.stringify(argv)}`);
+  return true;
+}).wrap(yargs.terminalWidth() / 2).argv;

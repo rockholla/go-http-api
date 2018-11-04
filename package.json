@@ -1,0 +1,118 @@
+{
+  "name": "go-http-api",
+  "version": "1.0.0",
+  "description": "Proof around Go HTTP API project, infrastructure, and deployment",
+  "main": "index.js",
+  "scripts": {
+    "lint": "npm run lint:node && npm run lint:go",
+    "lint:node": "eslint 'commands/!(add-requirement|use).js' 'lib/**/*' 'config/**/*'",
+    "lint:go": "golint -set_exit_status api",
+    "test": "NODE_ENV=development jest -c jest.config.js --testPathPattern=\"tests\\/.*?\\.test\\.js\"",
+    "build": "go build -o build/main api/main.go"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rockholla/go-http-api.git"
+  },
+  "author": "patrickforce@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rockholla/go-http-api/issues"
+  },
+  "homepage": "https://github.com/rockholla/go-http-api#readme",
+  "dependencies": {
+    "@rockholla/clia": "^0.4.4",
+    "aws-sdk": "^2.348.0",
+    "inquirer": "^6.2.0",
+    "shelljs": "^0.8.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "jest": "^23.6.0",
+    "request": "^2.88.0"
+  },
+  "engines": {
+    "node": ">=10.13",
+    "npm": ">=6.4"
+  },
+  "clia": {
+    "help": "For more info on setting values here, see https://github.com/rockholla/nodejs-clia#packagejson-cliarequirements",
+    "requirements": {
+      "enabled": true,
+      "executables": [
+        {
+          "name": "terraform",
+          "version": {
+            "required": ">=0.11.10",
+            "command": "terraform --version",
+            "replace": "(Terraform\\sv|\\n.*)"
+          },
+          "help": "https://github.com/Zordrak/tfenv"
+        },
+        {
+          "name": "aws-iam-authenticator",
+          "version": {
+            "required": "",
+            "command": "aws-iam-authenticator version",
+            "replace": "[a-zA-Z\\s]+"
+          },
+          "help": "https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html"
+        },
+        {
+          "name": "python",
+          "version": {
+            "required": ">=3.7",
+            "command": "python --version",
+            "replace": "(Python\\s)"
+          },
+          "help": ""
+        },
+        {
+          "name": "aws",
+          "version": {
+            "required": ">=1.16",
+            "command": "aws --version",
+            "replace": "(aws\\-cli\\/|\\s.*)"
+          },
+          "help": "https://docs.aws.amazon.com/cli/latest/userguide/installing.html"
+        },
+        {
+          "name": "kubectl",
+          "version": {
+            "required": ">=1.12",
+            "command": "kubectl version --client=true --short=true",
+            "replace": "(Client Version:\\sv)"
+          },
+          "help": "https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+        },
+        {
+          "name": "docker",
+          "version": {
+            "required": ">=18.6",
+            "command": "docker --version",
+            "replace": "(Docker version\\s|[\\-a-zA-Z,].*)"
+          },
+          "help": "https://docs.docker.com/install/"
+        },
+        {
+          "name": "go",
+          "version": {
+            "required": ">=1.10",
+            "command": "go version",
+            "replace": "(go version go|\\s.*)"
+          },
+          "help": "https://github.com/syndbg/goenv"
+        },
+        {
+          "name": "golint",
+          "version": {
+            "required": "",
+            "command": "echo ''",
+            "replace": ""
+          },
+          "help": "https://github.com/golang/lint"
+        }
+      ]
+    }
+  }
+}
