@@ -147,6 +147,7 @@ class CicdCommand {
       }
       packageJson.version = version.join('.')
       fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(packageJson, null, 2) + '\n')
+      common.exec('npm install', { cwd: root })
       common.exec('npm update', { cwd: root })
       common.exec('git add .', { cwd: root })
       common.exec(`git commit --no-verify -m "updating package.json to ${packageJson.version}"`)
