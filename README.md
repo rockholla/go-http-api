@@ -106,8 +106,10 @@ Our "CI server" for this project is included in the project itself. Here's how i
     * Increments your project version (in package.json) based on whether or not it's a major, minor, or patch release
     * Creates a release commit then merges with the `master` branch, creates a tag based on package.json version
     * (Attempts to push branches/tags to git origin, warns if no push access)
-    * Deploys the Go HTTP API to the AWS EKS cluster, a Kubernetes DaemonSet fronted by a Load-balanced Service
+    * Deploys the Go HTTP API to the AWS EKS cluster, a Kubernetes [`DaemonSet`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) fronted by a Load-balanced Service
 4. Linting, testing, and building scripts are also available for running individually via `npm run ...`. See `package.json` for all available.
+
+After running `./clia cicd release`, the log will let you know the endpoint for your deploy.
 
 ## Additional Notes
 
@@ -117,4 +119,4 @@ This is to provide some additional context around decisions within this project.
 2. Typically a CI server/service like Jenkins, Bamboo, Travis, CircleCI, etc. would be used here to wire up the build and deployment pipeline, webooks via SCM, dedicated build environments, and deployment config and mechanisms from that tool. Again, for the sake of simplicity in infrastructure though, I've wrapped it all in the `clia` tool: `./clia cicd help`. Essentially a CI server embedded in the project itself, and you can imagine similar operations being triggered on a remote CI server.
 3. `/tests` have been built out minimally, really just to show that they are wired into the pipeline functionally for running both infrastructure code and HTTP API tests.
 3. This project was focused on AWS, but [a Go App Engine project](https://cloud.google.com/appengine/docs/standard/go/quickstart) in Google Cloud would probably be the easiest path for something like this.
-4. The auto-scaling approach of choice here (DaemonSet) is again just a choice around simplicity. There are a handful of other routes that you could go via Kubernetes to scale. Depending on the actual application, you might opt for [horizontal pod autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/), or even explore things like multiple clusters across regions or datacenters with a load balancer directing traffic to both.
+4. The auto-scaling approach of choice here ([`DaemonSet`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)) is, again, an attempt at keeping it simple. There are a handful of other routes that you could go via Kubernetes to scale. Depending on the actual application, you might opt for [horizontal pod autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/), or even explore things like multiple clusters across regions or datacenters with a load balancer directing traffic to both.
