@@ -12,3 +12,5 @@
 *.out
 
 /node_modules
+# package lock is still too inconsistent with updates on install/update, just ignoring and relying soley on package.json
+/package-lock.json
