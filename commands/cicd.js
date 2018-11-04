@@ -16,7 +16,7 @@ class CicdCommand {
    */
   constructor () {
     this.actions    = ['init', 'build', 'release']
-    this.command    = `cicd <${this.actions.join('|')}>`
+    this.command    = `cicd <${this.actions.join('|')}> [--skip-deploy]`
     this.desc       = 'A built-in CI server of sorts, for automating building, testing, SCM flow, and deployments'
     this.aws        = null
   }
@@ -109,7 +109,7 @@ class CicdCommand {
    * @param {Object} argv - yargs arguments
    * @returns {Promise} promise result
    */
-  release () {
+  release (argv) {
     const root        = path.resolve(__dirname, '..')
     let packageJson   = require(path.resolve(root, 'package.json'))
     let currentBranch = common.exec('git rev-parse --abbrev-ref HEAD', { cwd: root }).trim()
@@ -160,36 +160,46 @@ class CicdCommand {
         logger.warn('Unable to push branches/tags to the origin repository. This likely means you have no access.')
       }
     }).then(() => {
-      logger.info('Ensuring the AWS ECR repository exists')
-      return this.aws.ensureEcrRepository('go-http-api')
+      if (!argv['skip-deploy']) {
+        logger.info('Ensuring the AWS ECR repository exists')
+        return this.aws.ensureEcrRepository('go-http-api')
+      }
     }).then(() => {
-      logger.info('Tagging the Go HTTP API image for AWS ECR')
-      common.exec(`docker tag rockholla/go-http-api:latest rockholla/go-http-api:${packageJson.version}`)
-      common.exec(`docker tag rockholla/go-http-api:latest ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
-      common.exec(`docker tag rockholla/go-http-api:latest ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
-      logger.info('Logging in to push via docker')
-      this.aws.loginToEcr()
-      logger.info('Pushing to ECR')
-      common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
-      common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
+      if (!argv['skip-deploy']) {
+        logger.info('Tagging the Go HTTP API image for AWS ECR')
+        common.exec(`docker tag rockholla/go-http-api:latest rockholla/go-http-api:${packageJson.version}`)
+        common.exec(`docker tag rockholla/go-http-api:latest ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
+        common.exec(`docker tag rockholla/go-http-api:latest ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
+        logger.info('Logging in to push via docker')
+        this.aws.loginToEcr()
+        logger.info('Pushing to ECR')
+        common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
+        common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
+      }
     }).then(() => {
-      kubernetes = new Kubernetes(this.aws, 'go-http-api')
-      logger.info('Running the rolling upgrade deployment to the EKS cluster')
-      let daemonSet = yaml.readSync(path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.template.yml'))
-      daemonSet.spec.template.metadata.labels.version = packageJson.version
-      daemonSet.spec.template.spec.containers[0].image = `${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`
-      const dest = path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.yml')
-      yaml.writeSync(dest, daemonSet)
-      kubernetes.apply(dest)
-      kubernetes.apply(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
-      logger.info(`Rolling upgrade initiatated. Monitoring status...`)
-      return kubernetes.waitForRolloutComplete('ds/go-http-api')
+      if (!argv['skip-deploy']) {
+        kubernetes = new Kubernetes(this.aws, 'go-http-api')
+        logger.info('Running the rolling upgrade deployment to the EKS cluster')
+        let daemonSet = yaml.readSync(path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.template.yml'))
+        daemonSet.spec.template.metadata.labels.version = packageJson.version
+        daemonSet.spec.template.spec.containers[0].image = `${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`
+        const dest = path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.yml')
+        yaml.writeSync(dest, daemonSet)
+        kubernetes.apply(dest)
+        kubernetes.apply(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
+        logger.info(`Rolling upgrade initiatated. Monitoring status...`)
+        return kubernetes.waitForRolloutComplete('ds/go-http-api')
+      }
     }).then(() => {
-      logger.info(`Rolling release of DaemonSet complete for new version ${packageJson.version}, now waiting for service endpoint to be available`)
-      return kubernetes.waitForServiceEndpoint('go-http-api')
+      if (!argv['skip-deploy']) {
+        logger.info(`Rolling release of DaemonSet complete for new version ${packageJson.version}, now waiting for service endpoint to be available`)
+        return kubernetes.waitForServiceEndpoint('go-http-api')
+      }
     }).then((result) => {
-      logger.info(`HTTP API accessible at http://${result}:3000. ` +
-                  `It may take a few minutes before it's available if this is the first deploy`)
+      if (!argv['skip-deploy']) {
+        logger.info(`HTTP API accessible at http://${result}:3000. ` +
+                    `It may take a few minutes before it's available if this is the first deploy`)
+      }
     })
   }
 
