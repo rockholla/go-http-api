@@ -145,6 +145,7 @@ class CicdCommand {
         default:
           throw new Error(`Invalid release type ${response.releaseType}`)
       }
+      common.exec('git pull origin develop', { cwd: root })
       packageJson.version = version.join('.')
       fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(packageJson, null, 2) + '\n')
       common.exec('git add .', { cwd: root })
