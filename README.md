@@ -61,7 +61,7 @@ What the above creates:
 
 1. A dedicated AWS VPC
 2. An EKS Cluster control plane
-3. EKS worker nodes with configurable number of min, max, and desired worker nodes, and configurable EC2 instance type for nodes
+3. EKS worker nodes with configurable number of min, max, and desired worker nodes, and configurable EC2 instance type for nodes (via a Launch Configuration)
 4. An auto-scaling group for worker nodes that
     * Adds a node if CPU utilization is above 80% across nodes for 10 mins
     * Removes a node if CPU utilization is less than 10% across nodes for 10 mins
