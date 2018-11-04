@@ -2,7 +2,7 @@
 
 This is a proof-of-concept project for a Golang-based HTTP api, infrastucture code for running it on AWS, and tooling/automation around continuous integration and delivery.
 
-## How to build it out
+## What you Need to Know
 
 Requirements for getting started after cloning this repo:
 
@@ -74,7 +74,7 @@ When you're done, you can destroy everything in AWS:
 ./clia infrastructure destroy
 ```
 
-## Developing
+## Working with the Project, Development
 
 The structure of this project:
 
@@ -111,7 +111,7 @@ Our "CI server" for this project is included in the project itself. Here's how i
 
 After running `./clia cicd release`, the log will let you know the endpoint for your deploy.
 
-## Try it out
+## See it all in Action
 
 The HTTP API in this project is serving up a list of trailheads and their location. Maybe we want to add more to the list, so here's a fun exercise to do that and see it all in action:
 
