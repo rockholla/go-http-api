@@ -77,6 +77,7 @@ The structure of this project:
 
 ```
 ├── api (the go HTTP API code)
+├── build (resources and staging ground for API build)
 ├── commands (clia commands definition)
 ├── config (clia configuration)
 ├── lib

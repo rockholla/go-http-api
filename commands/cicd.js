@@ -2,8 +2,10 @@ const fs        = require('fs')
 const path      = require('path')
 const common    = require('lib/common')
 const logger    = require('@rockholla/clia').logger
+const config    = require('@rockholla/clia').config
 const childp    = require('child_process')
 const inquirer  = require('inquirer')
+const Aws       = require('lib/aws')
 
 class CicdCommand {
 
@@ -14,6 +16,7 @@ class CicdCommand {
     this.actions    = ['init', 'build', 'release']
     this.command    = `cicd <${this.actions.join('|')}>`
     this.desc       = 'A built-in CI server of sorts, for automating building, testing, SCM flow, and deployments'
+    this.aws        = null
   }
 
   /**
@@ -21,6 +24,7 @@ class CicdCommand {
    * @param {Object} argv - yargs arguments
    */
   handler (argv) {
+    this.aws = new Aws(config.active.aws.profile)
     this[common.getArgvCommand(argv, this.actions)](argv).then(() => {}).catch((error) => {
       common.processError(error, argv)
     })
@@ -155,6 +159,19 @@ class CicdCommand {
       } catch (error) {
         logger.warn('Unable to push branches/tags to the origin repository. This likely means you have no access.')
       }
+    }).then(() => {
+      logger.info('Ensuring the AWS ECR repository exists')
+      return this.aws.ensureEcrRepository('go-http-api')
+    }).then(() => {
+      logger.info('Tagging the Go HTTP API image for AWS ECR')
+      common.exec(`docker tag rockholla/go-http-api:latest rockholla/go-http-api:${packageJson.version}`)
+      common.exec(`docker tag rockholla/go-http-api:latest ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
+      common.exec(`docker tag rockholla/go-http-api:latest ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
+      logger.info('Logging in to push via docker')
+      this.aws.loginToEcr()
+      logger.info('Pushing to ECR')
+      common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`)
+      common.exec(`docker push ${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:${packageJson.version}`)
     })
   }
 
