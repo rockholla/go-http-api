@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+const path  = require('path')
+const shell = require('shelljs')
+
+console.log('Running tests and a build before committing...')
+try {
+  const result = shell.exec('./clia cicd build', { cwd: path.resolve(__dirname, '..', '..')})
+  if (result.code !== 0) {
+    throw result.stderr
+  }
+} catch (error) {
+  console.error('Commit failed because of failure in pre-commit build/test')
+  console.error(error)
+  process.exit(1)
+}
