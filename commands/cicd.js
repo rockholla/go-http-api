@@ -121,12 +121,11 @@ class CicdCommand {
       return inquirer.prompt({
         type: 'list',
         name: 'releaseType',
-        choices: ['Major', 'Minor', 'Patch', 'Current package.json version'],
+        choices: ['Major', 'Minor', 'Patch'],
         message: 'What type of release is this?'
       })
     }).then((response) => {
       let version = packageJson.version.split('.')
-      let update  = true
       switch (response.releaseType) {
         case 'Major':
           version[0]++
@@ -140,18 +139,13 @@ class CicdCommand {
         case 'Patch':
           version[2]++
           break
-        case 'Current package.json version':
-          update = false
-          break
         default:
           throw new Error(`Invalid release type ${response.releaseType}`)
       }
-      if (update) {
-        packageJson.version = version.join('.')
-        fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(packageJson, null, 2))
-        common.exec('git add .', { cwd: root })
-        common.exec(`git commit --no-verify -m "updating package.json to ${packageJson.version}"`)
-      }
+      packageJson.version = version.join('.')
+      fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(packageJson, null, 2))
+      common.exec('git add .', { cwd: root })
+      common.exec(`git commit --no-verify -m "updating package.json to ${packageJson.version}"`)
       common.exec('git checkout master', { cwd: root })
       common.exec(`git merge ${currentBranch}`, { cwd: root })
       common.exec(`git checkout ${currentBranch}`, { cwd: root })
