@@ -111,6 +111,18 @@ Our "CI server" for this project is included in the project itself. Here's how i
 
 After running `./clia cicd release`, the log will let you know the endpoint for your deploy.
 
+## Try it out
+
+The HTTP API in this project is serving up a list of trailheads and their location. Maybe we want to add more to the list, so here's a fun exercise to do that and see it all in action:
+
+1. Make sure the requirements are met and you have a local clone of this project
+2. Initialize CI/CD if you haven't already: `./clia cicd init`
+3. Ensure your infrastructure is in place: `./clia infrastructure apply`
+4. Deploy the app: `./clia cicd release`
+5. Add some trailheads to the API in `api/main.go`
+6. Commit your changes (see how the git pre-commit hook will lint/test/build automatically before accepting the commit)
+7. Deploy your new code: `./clia cicd release`, go to the endpoint provided in the log output and see your new trailheads
+
 ## Additional Notes
 
 This is to provide some additional context around decisions within this project.
