@@ -116,7 +116,7 @@ After running `./clia cicd release`, the log will let you know the endpoint for 
 The HTTP API in this project is serving up a list of trailheads and their location. Maybe we want to add more to the list, so here's a fun exercise to do that and see it all in action:
 
 1. Make sure the requirements are met and you have a local clone of this project
-2. Create your config: `./clia use mine` and add your AWS profile name to the default (default = "default")
+2. Create your config: `./clia use mine` and add your AWS profile name to the config file as discussed above
 3. Initialize CI/CD if you haven't already: `./clia cicd init`
 4. Ensure your infrastructure is in place: `./clia infrastructure apply`
 5. Deploy the app: `./clia cicd release`
