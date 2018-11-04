@@ -150,9 +150,8 @@ class CicdCommand {
       common.exec(`git checkout ${currentBranch}`, { cwd: root })
       common.exec(`git tag -a ${packageJson.version} -m "Tagging version ${packageJson.version}"`, { cwd: root })
       try {
-        throw 'blah'
-        //common.exec('git push --all origin', { cwd: root })
-        //common.exec('git push --tags origin', { cwd: root })
+        common.exec('git push --all origin', { cwd: root })
+        common.exec('git push --tags origin', { cwd: root })
       } catch (error) {
         logger.warn('Unable to push branches/tags to the origin repository. This likely means you have no access.')
       }
