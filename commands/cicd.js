@@ -183,21 +183,12 @@ class CicdCommand {
       this.kubernetes.apply(dest)
       this.kubernetes.apply(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
       logger.info(`Rolling upgrade initiatated. Monitoring status...`)
-      let result      = this.kubernetes.getRolloutStatus('ds/go-http-api')
-      let attempts    = 0
-      let maxAttempts = 10
-      while (attempts < maxAttempts && !result.match(/successfully rolled out/g)) {
-        result = this.kubernetes.getRolloutStatus('ds/go-http-api')
-        attempts++
-        common.sleep(10)
-      }
-      if (attempts >= maxAttempts) {
-        logger.error('Timed out waiting for deploy rollout to finish')
-        process.exit(1)
-      }
-      logger.info(`Rolling release complete for new version ${packageJson.version}...pausing before release completion`)
-      common.sleep(10)
-      logger.info(`HTTP API accessible at http://${this.kubernetes.getServiceEndpoint('go-http-api')}:3000. ` +
+      return this.kubernetes.waitForRolloutComplete('ds/go-http-api')
+    }).then(() => {
+      logger.info(`Rolling release of DaemonSet complete for new version ${packageJson.version}, now waiting for service endpoint to be available`)
+      return this.kubernetes.waitForServiceEndpoint('go-http-api')
+    }).then((result) => {
+      logger.info(`HTTP API accessible at http://${result}:3000. ` +
                   `It may take a few minutes before it's available if this is the first deploy`)
     })
   }
