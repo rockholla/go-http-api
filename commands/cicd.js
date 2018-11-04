@@ -1,8 +1,9 @@
-const fs      = require('fs')
-const path    = require('path')
-const common  = require('lib/common')
-const logger  = require('@rockholla/clia').logger
-const childp  = require('child_process')
+const fs        = require('fs')
+const path      = require('path')
+const common    = require('lib/common')
+const logger    = require('@rockholla/clia').logger
+const childp    = require('child_process')
+const inquirer  = require('inquirer')
 
 class CicdCommand {
 
@@ -103,8 +104,58 @@ class CicdCommand {
    * @returns {Promise} promise result
    */
   release () {
+    const root        = path.resolve(__dirname, '..')
+    let packageJson   = require(path.resolve(root, 'package.json'))
+    let currentBranch = common.exec('git rev-parse --abbrev-ref HEAD', { cwd: root }).trim()
+    if (common.exec('git status', { cwd: root }).indexOf('nothing to commit') === -1) {
+      return Promise.reject(`The source currently contains unstaged commits. Please commit before running a release.`)
+    }
+    if (currentBranch !== 'develop') {
+      return Promise.reject(`Please switch to the develop branch to run a release`)
+    }
     return this.build().then(() => {
-
+      return inquirer.prompt({
+        type: 'list',
+        name: 'releaseType',
+        choices: ['Major', 'Minor', 'Patch', 'Current package.json version'],
+        message: 'What type of release is this?'
+      })
+    }).then((response) => {
+      let version = packageJson.version.split('.')
+      switch (response.releaseType) {
+        case 'Major':
+          version[0]++
+          version[1] = 0
+          version[2] = 0
+          break
+        case 'Minor':
+          version[1]++
+          version[2] = 0
+          break
+        case 'Patch':
+          version[2]++
+          break
+        case 'Current package.json version':
+          // version stays the same
+          break
+        default:
+          throw new Error(`Invalid release type ${response.releaseType}`)
+      }
+      packageJson.version = version.join('.')
+      fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(packageJson, null, 2))
+      common.exec('git add .', { cwd: root })
+      common.exec(`git commit -m "updating package.json to ${packageJson.version}"`)
+      common.exec('git checkout master', { cwd: root })
+      common.exec(`git merge ${currentBranch}`, { cwd: root })
+      common.exec(`git checkout ${currentBranch}`, { cwd: root })
+      common.exec(`git tag -a ${packageJson.version} -m "Tagging version ${packageJson.version}"`, { cwd: root })
+      try {
+        throw 'blah'
+        //common.exec('git push --all origin', { cwd: root })
+        //common.exec('git push --tags origin', { cwd: root })
+      } catch (error) {
+        logger.warn('Unable to push branches/tags to the origin repository. This likely means you have no access.')
+      }
     })
   }
 

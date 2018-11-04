@@ -96,9 +96,10 @@ Our "CI server" for this project is included in the project itself. Here's how i
 2. You can used `./clia cicd build` at any point to lint/test/rebuild
 3. `./clia cicd release` does the following:
     * Enforces no unstaged changes in your clone and that you're on the `develop` branch
-    * Runs tests and then builds the Go HTTP API (Docker image), exits in the case of failure. Build inclu
+    * Runs tests/build
     * Increments your project version (in package.json) based on whether or not it's a major, minor, or patch release
-    * Creates a release commit then merges with the `master` branch, tries to push changes to origin, silently fails if no push access
+    * Creates a release commit then merges with the `master` branch, creates a tag based on package.json version
+    * Attempts to push changes to origin, warns if no push access
     * Deploys the Go HTTP API to the AWS EKS cluster, a Kubernetes Deployment with pod horizontal auto-scaling, and rolling upgrades
 4. Linting, testing, and building scripts are also available for running individually via `npm run ...`. See `package.json` for all available.
 
@@ -108,4 +109,5 @@ This is to provide some additional context around decisions within this project.
 
 1. There are a number of local requirements while running this. In a real/client situation, We'd likely have something like a jump box/bastion spun up on the cloud with most dependencies installed automatically for us there to run commands. A bootstrap command that would have fewer local requirements could spin up base resources in the cloud, connect to that jump box, and other commands would run from there. Keeping the infrastructure as simple as possible for this proof though.
 2. Typically a CI server like Jenkins, Bamboo, Travis, CircleCI, etc. would be used here to wire up the build and deployment pipeline, webooks via SCM, dedicated build environments, and deployment config and mechanisms from that tool. For the sake of simplicity for this demo, I've wrapped it all in the `clia` tool here: `./clia cicd help`. Essentially a CI server embedded in the project itself. Again, just keeping the number of infrastructure resources and tools to a minimum for the sake of a proof/demo.
+3. Tests in `/tests` are minimal, just to show that they are wired into the pipeline functionally for both the infrastructure code and HTTP API for functional testing
 3. This project was focused on AWS, but [a Go App Engine project](https://cloud.google.com/appengine/docs/standard/go/quickstart) in Google Cloud would probably be the easiest path for something like this.
