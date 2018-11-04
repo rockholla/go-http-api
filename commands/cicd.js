@@ -151,6 +151,7 @@ class CicdCommand {
       common.exec('git add .', { cwd: root })
       common.exec(`git commit --no-verify -m "updating package.json to ${packageJson.version}"`)
       common.exec('git checkout master', { cwd: root })
+      common.exec('git pull origin master', { cwd: root })
       common.exec(`git merge ${currentBranch}`, { cwd: root })
       common.exec(`git checkout ${currentBranch}`, { cwd: root })
       common.exec(`git tag -a ${packageJson.version} -m "Tagging version ${packageJson.version}"`, { cwd: root })
