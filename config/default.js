@@ -10,6 +10,9 @@ module.exports = {
         max: 4,
         desired: 2,
       },
+      node: {
+        type: 'm4.large'
+      }
     },
   },
 }

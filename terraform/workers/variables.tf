@@ -33,6 +33,11 @@ variable "cluster_desired_size" {
   description = "The desired number of worker nodes"
 }
 
+variable "cluster_node_instance_type" {
+  type        = "string"
+  description = "EC2 instance type for cluster worker node"
+}
+
 variable "subnet_ids" {
   type        = "list"
   description = "The VPC subnet IDs"

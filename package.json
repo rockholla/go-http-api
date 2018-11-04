@@ -53,7 +53,7 @@
           "version": {
             "required": "",
             "command": "aws-iam-authenticator version",
-            "replace": "[a-zA-Z\\s]+"
+            "replace": ""
           },
           "help": "https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html"
         },

@@ -23,6 +23,7 @@ class InfrastructureCommand {
     this.clusterName        = 'go-http-api'
     this.aws                = null
     this.terraform          = null
+    this.kubernetes         = null
     this.stateBucketPrefix  = 'go-http-api'
   }
 
@@ -48,6 +49,7 @@ class InfrastructureCommand {
       cluster_min_size: config.active.aws.cluster.size.min,
       cluster_max_size: config.active.aws.cluster.size.max,
       cluster_desired_size: config.active.aws.cluster.size.desired,
+      cluster_node_instance_type: config.active.aws.cluster.node.type,
     })
   }
 
@@ -61,10 +63,10 @@ class InfrastructureCommand {
       logger.info('Creating/updating Go HTTP API infrastructure')
       return this.terraform.execute(`apply ${this.getTerraformArgs()}`, path.resolve(__dirname, '..', 'terraform'), this.stateBucketPrefix)
     }).then((result) => {
-      const kubernetes  = new Kubernetes(this.aws, this.clusterName)
+      this.kubernetes   = new Kubernetes(this.aws, this.clusterName)
       const yamlPath    = path.resolve(__dirname, '..', 'terraform', '.tmp', 'config_map_aws_auth.yml')
       fs.writeFileSync(yamlPath, result.outputs.config_map_aws_auth.value)
-      kubernetes.apply(yamlPath)
+      this.kubernetes.apply(yamlPath)
     })
   }
 
@@ -76,7 +78,13 @@ class InfrastructureCommand {
   destroy (argv) {
     return common.protectAction('infrastructure', 'destroy', argv).then(() => {
       logger.info('Destroying Go HTTP API infrastructure')
+      this.kubernetes = new Kubernetes(this.aws, this.clusterName)
+      this.kubernetes.destroy(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
       return this.terraform.execute(`destroy ${this.getTerraformArgs()}`, path.resolve(__dirname, '..', 'terraform'), this.stateBucketPrefix)
+    }).then(() => {
+      logger.warn(`The following AWS resources are not destroyed automatically and will need to be removed manually if needed:\n\n` +
+                  `  * ECR Repository "go-http-api" and images in region ${this.aws.region}\n` +
+                  `  * The S3 state bucket named "go-http-api-${this.aws.accountId}" in region ${this.aws.region}`)
     })
   }
 

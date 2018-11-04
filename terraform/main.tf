@@ -38,5 +38,6 @@ module "workers" {
   cluster_min_size                = "${var.cluster_min_size}"
   cluster_max_size                = "${var.cluster_max_size}"
   cluster_desired_size            = "${var.cluster_desired_size}"
+  cluster_node_instance_type      = "${var.cluster_node_instance_type}"
   subnet_ids                      = "${module.network.subnet_ids}"
 }

@@ -60,7 +60,7 @@ resource "aws_launch_configuration" "nodes" {
   associate_public_ip_address = true
   iam_instance_profile        = "${aws_iam_instance_profile.nodes.name}"
   image_id                    = "${data.aws_ami.node.id}"
-  instance_type               = "m4.large"
+  instance_type               = "${var.cluster_node_instance_type}"
   name_prefix                 = "${var.cluster_name}"
   security_groups             = ["${var.security_group_id}"]
   user_data_base64            = "${base64encode(local.node_userdata)}"
