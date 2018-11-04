@@ -23,7 +23,6 @@ class InfrastructureCommand {
     this.clusterName        = 'go-http-api'
     this.aws                = null
     this.terraform          = null
-    this.kubernetes         = null
     this.stateBucketPrefix  = 'go-http-api'
   }
 
@@ -63,10 +62,10 @@ class InfrastructureCommand {
       logger.info('Creating/updating Go HTTP API infrastructure')
       return this.terraform.execute(`apply ${this.getTerraformArgs()}`, path.resolve(__dirname, '..', 'terraform'), this.stateBucketPrefix)
     }).then((result) => {
-      this.kubernetes   = new Kubernetes(this.aws, this.clusterName)
+      const kubernetes  = new Kubernetes(this.aws, this.clusterName)
       const yamlPath    = path.resolve(__dirname, '..', 'terraform', '.tmp', 'config_map_aws_auth.yml')
       fs.writeFileSync(yamlPath, result.outputs.config_map_aws_auth.value)
-      this.kubernetes.apply(yamlPath)
+      kubernetes.apply(yamlPath)
     })
   }
 
@@ -78,8 +77,8 @@ class InfrastructureCommand {
   destroy (argv) {
     return common.protectAction('infrastructure', 'destroy', argv).then(() => {
       logger.info('Destroying Go HTTP API infrastructure')
-      this.kubernetes = new Kubernetes(this.aws, this.clusterName)
-      this.kubernetes.destroy(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
+      const kubernetes = new Kubernetes(this.aws, this.clusterName)
+      kubernetes.destroy(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
       return this.terraform.execute(`destroy ${this.getTerraformArgs()}`, path.resolve(__dirname, '..', 'terraform'), this.stateBucketPrefix)
     }).then(() => {
       logger.warn(`The following AWS resources are not destroyed automatically and will need to be removed manually if needed:\n\n` +
