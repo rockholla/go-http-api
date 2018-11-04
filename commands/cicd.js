@@ -179,7 +179,7 @@ class CicdCommand {
       daemonSet.spec.template.metadata.labels.version = packageJson.version
       daemonSet.spec.template.spec.containers[0].image = `${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`
       const dest = path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.yml')
-      yaml.writeSync(dest)
+      yaml.writeSync(dest, daemonSet)
       this.kubernetes.apply(dest)
       this.kubernetes.apply(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
       logger.info(`Rolling upgrade initiatated. Monitoring status...`)
