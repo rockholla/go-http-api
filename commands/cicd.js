@@ -144,7 +144,7 @@ class CicdCommand {
       packageJson.version = version.join('.')
       fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(packageJson, null, 2))
       common.exec('git add .', { cwd: root })
-      common.exec(`git commit -m "updating package.json to ${packageJson.version}"`)
+      common.exec(`git commit --no-verify -m "updating package.json to ${packageJson.version}"`)
       common.exec('git checkout master', { cwd: root })
       common.exec(`git merge ${currentBranch}`, { cwd: root })
       common.exec(`git checkout ${currentBranch}`, { cwd: root })
