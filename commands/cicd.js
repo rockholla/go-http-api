@@ -93,11 +93,11 @@ class CicdCommand {
     return this.runNpmScript('lint:node').then(() => {
       return this.runNpmScript('lint:go', true)
     }).then(() => {
-      logger.info('Running tests')
-      return this.runNpmScript('test')
-    }).then(() => {
       logger.info('Building Go HTTP API binary')
       return this.runNpmScript('build')
+    }).then(() => {
+      logger.info('Running tests')
+      return this.runNpmScript('test')
     }).then(() => {
       logger.info('Building Go HTTP API docker image')
       common.exec(`docker build -t rockholla/go-http-api .`, { cwd: path.resolve(__dirname, '..', 'build') })
