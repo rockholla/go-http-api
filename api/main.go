@@ -28,8 +28,8 @@ func GetTrailheads(w http.ResponseWriter, r *http.Request) {
   trailheads := Trailheads{
     Trailhead{ID: 1, Name: "Baxter's Gulch", Latitude: 38.86027669451596, Longitude: -106.9727601880234},
     Trailhead{ID: 2, Name: "Journey's End", Latitude: 38.86619254425446, Longitude: -106.99025183412073},
-    Trailhead{ID: 2, Name: "Upended", Latitude: 37.7654537389772, Longitude: -105.9273626660029},
-    Trailhead{ID: 2, Name: "Kebler Pass Trailhead", Latitude: 38.86762614165766, Longitude: -107.02326178550722},
+    Trailhead{ID: 3, Name: "Upended", Latitude: 37.7654537389772, Longitude: -105.9273626660029},
+    Trailhead{ID: 4, Name: "Kebler Pass Trailhead", Latitude: 38.86762614165766, Longitude: -107.02326178550722},
   }
   json.NewEncoder(w).Encode(trailheads)
 }
