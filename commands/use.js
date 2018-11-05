@@ -24,6 +24,9 @@ class CommandDefinition {
   }
 
   symlink(argv) {
+    if (_fs2.default.existsSync(_path2.default.join(__dirname, '..', 'config', 'local.js'))) {
+      _fs2.default.unlinkSync(_path2.default.join(__dirname, '..', 'config', 'local.js'));
+    }
     _fs2.default.symlinkSync(_path2.default.join(__dirname, '..', 'config', argv.name + '.js'), _path2.default.join(__dirname, '..', 'config', 'local.js'));
     _clia.logger.info(`Now using ${argv.name} configuration`);
   }
@@ -50,7 +53,7 @@ class CommandDefinition {
         message: 'Would you like to create it?'
       }).then(response => {
         if (response.create) {
-          _fs2.default.writeFileSync(_path2.default.resolve(__dirname, '..', 'config', `${argv.name}.js`), 'module.exports = {};');
+          _fs2.default.writeFileSync(_path2.default.resolve(__dirname, '..', 'config', `${argv.name}.js`), 'module.exports = {}');
           this.symlink(argv);
         }
       });
