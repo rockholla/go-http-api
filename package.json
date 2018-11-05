@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/rockholla/go-http-api#readme",
   "dependencies": {
-    "@rockholla/clia": "^0.4.7",
+    "@rockholla/clia": "^0.4.8",
     "aws-sdk": "^2.348.0",
     "eslint": "^5.8.0",
     "inquirer": "^6.2.0",
