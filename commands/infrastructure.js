@@ -78,7 +78,7 @@ class InfrastructureCommand {
     return common.protectAction('infrastructure', 'destroy', argv).then(() => {
       logger.info('Destroying Go HTTP API infrastructure')
       const kubernetes = new Kubernetes(this.aws, this.clusterName)
-      kubernetes.destroy(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
+      kubernetes.destroy(path.resolve(__dirname, '..', 'kubernetes', 'service.yml'))
       return this.terraform.execute(`destroy ${this.getTerraformArgs()}`, path.resolve(__dirname, '..', 'terraform'), this.stateBucketPrefix)
     }).then(() => {
       logger.warn(`The following AWS resources are not destroyed automatically and will need to be removed manually if needed:\n\n` +
