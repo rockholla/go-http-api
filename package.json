@@ -1,6 +1,6 @@
 {
   "name": "go-http-api",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "Proof around Go HTTP API project, infrastructure, and deployment",
   "main": "index.js",
   "scripts": {
