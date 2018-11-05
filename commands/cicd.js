@@ -98,9 +98,6 @@ class CicdCommand {
     }).then(() => {
       logger.info('Running tests')
       return this.runNpmScript('test')
-    }).then(() => {
-      logger.info('Building Go HTTP API docker image')
-      common.exec(`docker build -t rockholla/go-http-api .`, { cwd: path.resolve(__dirname, '..', 'build') })
     })
   }
 
@@ -182,13 +179,13 @@ class CicdCommand {
       if (!argv['skip-deploy']) {
         kubernetes = new Kubernetes(this.aws, 'go-http-api')
         logger.info('Running the rolling upgrade deployment to the EKS cluster')
-        let daemonSet = yaml.readSync(path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.template.yml'))
+        let daemonSet = yaml.readSync(path.resolve(__dirname, '..', 'kubernetes', 'daemonset.template.yml'))
         daemonSet.spec.template.metadata.labels.version = packageJson.version
         daemonSet.spec.template.spec.containers[0].image = `${this.aws.accountId}.dkr.ecr.${this.aws.region}.amazonaws.com/go-http-api:latest`
-        const dest = path.resolve(__dirname, '..', 'build', 'kubernetes', 'daemonset.yml')
+        const dest = path.resolve(__dirname, '..', 'kubernetes', 'daemonset.yml')
         yaml.writeSync(dest, daemonSet)
         kubernetes.apply(dest)
-        kubernetes.apply(path.resolve(__dirname, '..', 'build', 'kubernetes', 'service.yml'))
+        kubernetes.apply(path.resolve(__dirname, '..', 'kubernetes', 'service.yml'))
         logger.info(`Rolling upgrade initiatated. Monitoring status...`)
         return kubernetes.waitForRolloutComplete('ds/go-http-api')
       }

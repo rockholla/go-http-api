@@ -8,7 +8,7 @@
     "lint:node": "eslint 'commands/!(add-requirement|use).js' 'lib/**/*' 'config/**/*'",
     "lint:go": "golint -set_exit_status api",
     "test": "NODE_ENV=development jest -c jest.config.js --testPathPattern=\"tests\\/.*?\\.test\\.js\"",
-    "build": "go build -o build/main api/main.go"
+    "build": "docker build -t rockholla/go-http-api api/"
   },
   "repository": {
     "type": "git",

@@ -8,8 +8,7 @@ Requirements for getting started after cloning this repo:
 
 1. [NodeJS >= 10.13](https://github.com/nodenv/nodenv)
 2. Run `npm install` from the root of this clone
-3. [Go](https://github.com/syndbg/goenv) and the following package `go get github.com/gorilla/mux` (for building the HTTP API)
-4. For additional requirements, see `package.json` -> `clia.requirements`
+3. For additional requirements, see `package.json` -> `clia.requirements`
 
 All requirements are enforced when running the `clia` tool. And for more info on that tool...
 
@@ -80,11 +79,10 @@ The structure of this project:
 
 ```
 ├── api (the go HTTP API code)
-├── build (resources and staging artifacts for API build/deploy)
-|   └── Dockerfile (image of the HTTP API this is built/deployed)
-|   └── kubernetes (templates for kubernetes resources)
+|   └── Dockerfile (used to build the deployable image)
 ├── commands (clia commands definition)
 ├── config (clia configuration)
+├── kubernetes (templates for kubernetes resources)
 ├── lib
 │   └── aws.js (AWS library SDK/CLI)
 │   └── common.js (Common/shared library)

@@ -1,5 +1,6 @@
 const path    = require('path')
 const logger  = require('@rockholla/clia').logger
+const shell   = require('shelljs')
 
 module.exports = () => {
   const shell = require('shelljs')
@@ -9,8 +10,6 @@ module.exports = () => {
     fs.renameSync(path.resolve(__dirname, '..', 'config', 'local.js'), path.resolve(__dirname, '..', 'config', 'local.tmp.js'))
   }
   shell.exec(`./clia use tests`, { cwd: path.resolve(__dirname, '..') })
-  if (!fs.existsSync(path.resolve(__dirname, '..', 'build', 'main'))) {
-    logger.error('build/main does not exist, please run "npm run build"')
-    process.exit(1)
-  }
+  process.env.GO_HTTP_API_DOCKER_PROCESS = shell.exec('docker run -d -p 3000:3000 rockholla/go-http-api', { silent: true })
+  console.log(`Starting docker process for local server: ${process.env.GO_HTTP_API_DOCKER_PROCESS}`)
 }
